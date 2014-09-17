@@ -286,6 +286,14 @@ void serverCloseSocket(int);
 int serverChangeUser(const char*);
 
 /**
+ * turns the current process into a daemon process. returns 1 if that was
+ * successfull and 0 if not. if this function returns 0 the process should be
+ * terminated because something might have changed e.g. stdin, stdout and stderr
+ * point to /dev/null.
+ */
+int serverDaemonize(void);
+
+/**
  * shuts the server down. this function literally does nothing.
  */
 void serverShutdown(void);

@@ -25,8 +25,11 @@
 #include <pwd.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 /**
  * defines the structure of a socket.
@@ -603,6 +606,56 @@ int serverChangeUser(const char *user)
 			if(setuid(rec->pw_uid) == 0)
 			{
 				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
+ * turns the current process into a daemon process. returns 1 if that was
+ * successfull and 0 if not. if this function returns 0 the process should be
+ * terminated because something might have changed e.g. stdin, stdout and stderr
+ * point to /dev/null.
+ */
+int serverDaemonize(void)
+{
+	pid_t id;
+
+	/* clear the file creation mask */
+	umask(0);
+
+	/* close stdin, stdout and stderr */
+	close(0);
+	close(1);
+	close(2);
+
+	/* reopen stdin with /dev/null */
+	if(open("/dev/null", O_RDWR) == 0)
+	{
+		/* now reopen stdout and stderr by duplicating stdin */
+		dup(0);
+		dup(0);
+
+		/* change the current working directory to / */
+		if(chdir("/") == 0)
+		{
+			/* create a new process  */
+			id = fork();
+
+			/* is this the new process */
+			if(id == 0)
+			{
+				/* make this process the session leader */
+				setsid();
+
+				return 1;
+			}
+			else if(id > 0)
+			{
+				/* just close the parent process */
+				exit(0);
 			}
 		}
 	}

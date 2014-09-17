@@ -378,6 +378,17 @@ static int _luaServerChangeUser(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverDaemonize().
+ */
+static int _luaServerDaemonize(lua_State *state)
+{
+	/* turn the process into a daemon */
+	lua_pushboolean(state, serverDaemonize());
+
+	return 1;
+}
+
+/**
  * registers the server api with lua.
  */
 static void _registerServerApi(void)
@@ -388,6 +399,7 @@ static void _registerServerApi(void)
 		{"addServerSocket", _luaServerAddServerSocket},
 		{"closeSocket", _luaServerCloseSocket},
 		{"changeUser", _luaServerChangeUser},
+		{"daemonize", _luaServerDaemonize},
 		{NULL, NULL}
 	};
 

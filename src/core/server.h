@@ -286,8 +286,8 @@ int serverChangeDir(const char*);
 
 /**
  * this function is used to change the effective and real user and group id to
- * the specified user. the user is specified by his name. returns 1 if it was
- * possible to change the user and 0 if not.
+ * the one of the specified user. the user is specified by his name. returns 1
+ * if it was possible to change the user and 0 if not.
  */
 int serverChangeUser(const char*);
 

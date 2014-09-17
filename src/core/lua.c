@@ -342,12 +342,12 @@ static int _luaServerSetCallback(lua_State *state)
 }
 
 /**
- * lua wrapper function for serverAddServerSocket().
+ * lua wrapper function for serverOpenSocket().
  */
-static int _luaServerAddServerSocket(lua_State *state)
+static int _luaServerOpenSocket(lua_State *state)
 {
 	/* add the server to the system and push the result onto the lua stack */
-	_pushSocketFd(state, serverAddServerSocket(
+	_pushSocketFd(state, serverOpenSocket(
 		luaL_checkstring(state, 1),
 		luaL_checkstring(state, 2)
 	));
@@ -421,7 +421,7 @@ static void _registerServerApi(void)
 	/* possible lua server functions */
 	const luaL_Reg funcs[] = {
 		{"setCallback", _luaServerSetCallback},
-		{"addServerSocket", _luaServerAddServerSocket},
+		{"openSocket", _luaServerOpenSocket},
 		{"closeSocket", _luaServerCloseSocket},
 		{"changeUser", _luaServerChangeUser},
 		{"jail", _luaServerJail},

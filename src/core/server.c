@@ -541,7 +541,7 @@ callback_t serverGetCallback(void)
  * adds a new server socket to the system. returns the socket descriptor if
  * everything is ok and INVALID_SOCKET if not.
  */
-int serverAddServerSocket(const char *host, const char *port)
+int serverOpenSocket(const char *host, const char *port)
 {
 	/* create a new server socket descriptor */
 	int fd = socketOpenServer(host, port);

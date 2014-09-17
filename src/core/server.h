@@ -269,7 +269,7 @@ callback_t serverGetCallback(void);
  * adds a new server socket to the system. returns the socket descriptor if
  * everything is ok and INVALID_SOCKET if not.
  */
-int serverAddServerSocket(const char*, const char*);
+int serverOpenSocket(const char*, const char*);
 
 /**
  * used to close the given socket. this basically sets the keep-alive value of

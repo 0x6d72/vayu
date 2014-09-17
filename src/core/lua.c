@@ -367,6 +367,17 @@ static int _luaServerCloseSocket(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverChangeUser().
+ */
+static int _luaServerChangeUser(lua_State *state)
+{
+	/* try to change the user of the process */
+	lua_pushboolean(state, serverChangeUser(lua_tostring(state, 1)));
+
+	return 1;
+}
+
+/**
  * registers the server api with lua.
  */
 static void _registerServerApi(void)
@@ -376,6 +387,7 @@ static void _registerServerApi(void)
 		{"setCallback", _luaServerSetCallback},
 		{"addServerSocket", _luaServerAddServerSocket},
 		{"closeSocket", _luaServerCloseSocket},
+		{"changeUser", _luaServerChangeUser},
 		{NULL, NULL}
 	};
 

@@ -279,6 +279,13 @@ int serverAddServerSocket(const char*, const char*);
 void serverCloseSocket(int);
 
 /**
+ * this function is used to change the effective and real user and group id to
+ * the specified user. the user is specified by his name. returns 1 if it was
+ * possible to change the user and 0 if not.
+ */
+int serverChangeUser(const char*);
+
+/**
  * shuts the server down. this function literally does nothing.
  */
 void serverShutdown(void);

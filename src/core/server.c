@@ -22,6 +22,7 @@
 
 #include "server.h"
 
+#include <pwd.h>
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
@@ -580,6 +581,33 @@ void serverCloseSocket(int fd)
 		 * possible */
 		_enableSocketWrite(fd);
 	}
+}
+
+/**
+ * this function is used to change the effective and real user and group id to
+ * the specified user. the user is specified by his name. returns 1 if it was
+ * possible to change the user and 0 if not.
+ */
+int serverChangeUser(const char *user)
+{
+	/* get the user data */
+	struct passwd *rec = getpwnam(user);
+
+	/* was a user found with that particular name */
+	if(rec != NULL)
+	{
+		/* change the group id first */
+		if(setgid(rec->pw_gid) == 0)
+		{
+			/* now try to change the user id */
+			if(setuid(rec->pw_uid) == 0)
+			{
+				return 1;
+			}
+		}
+	}
+
+	return 0;
 }
 
 /**

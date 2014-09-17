@@ -30,6 +30,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 /**
  * defines the structure of a socket.
@@ -593,6 +594,16 @@ void serverCloseSocket(int fd)
 int serverChangeDir(const char *dir)
 {
 	return chdir(dir) == 0 ? 1 : 0;
+}
+
+/**
+ * checks whether ther server has privileged rights or not. returns 1 if the
+ * server is priviliged and 0 if not.
+ */
+int serverIsPrivileged(void)
+{
+	/* is this the root user */
+	return getuid() == 0 && getgid() == 0;
 }
 
 /**

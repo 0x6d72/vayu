@@ -285,6 +285,12 @@ void serverCloseSocket(int);
 int serverChangeDir(const char*);
 
 /**
+ * checks whether ther server has privileged rights or not. returns 1 if the
+ * server is priviliged and 0 if not.
+ */
+int serverIsPrivileged(void);
+
+/**
  * this function is used to change the effective and real user and group id to
  * the one of the specified user. the user is specified by his name. returns 1
  * if it was possible to change the user and 0 if not.

@@ -378,6 +378,17 @@ static int _luaServerChangeDir(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverIsPrivileged().
+ */
+static int _luaServerIsPrivileged(lua_State *state)
+{
+	/* check if the process has privileged rights */
+	lua_pushboolean(state, serverIsPrivileged());
+
+	return 1;
+}
+
+/**
  * lua wrapper function for serverChangeUser().
  */
 static int _luaServerChangeUser(lua_State *state)
@@ -435,6 +446,7 @@ static void _registerServerApi(void)
 		{"openSocket", _luaServerOpenSocket},
 		{"closeSocket", _luaServerCloseSocket},
 		{"changeDir", _luaServerChangeDir},
+		{"isPrivileged", _luaServerIsPrivileged},
 		{"changeUser", _luaServerChangeUser},
 		{"jail", _luaServerJail},
 		{"changeUserAndJail", _luaServerChangeUserAndJail},

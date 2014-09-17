@@ -378,23 +378,37 @@ static int _luaServerChangeUser(lua_State *state)
 }
 
 /**
- * lua wrapper function for serverDaemonize().
- */
-static int _luaServerDaemonize(lua_State *state)
-{
-	/* turn the process into a daemon */
-	lua_pushboolean(state, serverDaemonize());
-
-	return 1;
-}
-
-/**
  * lua wrapper function for serverJail().
  */
 static int _luaServerJail(lua_State *state)
 {
 	/* create the jail */
 	lua_pushboolean(state, serverJail(luaL_checkstring(state, 1)));
+
+	return 1;
+}
+
+/**
+ * lua wrapper function for serverChangeUserAndJail().
+ */
+static int _luaServerChangeUserAndJail(lua_State *state)
+{
+	/* change the user and establish a root jail */
+	lua_pushboolean(state, serverChangeUserAndJail(
+		luaL_checkstring(state, 1),
+		luaL_checkstring(state, 2)
+	));
+
+	return 1;
+}
+
+/**
+ * lua wrapper function for serverDaemonize().
+ */
+static int _luaServerDaemonize(lua_State *state)
+{
+	/* turn the process into a daemon */
+	lua_pushboolean(state, serverDaemonize());
 
 	return 1;
 }
@@ -410,8 +424,9 @@ static void _registerServerApi(void)
 		{"addServerSocket", _luaServerAddServerSocket},
 		{"closeSocket", _luaServerCloseSocket},
 		{"changeUser", _luaServerChangeUser},
-		{"daemonize", _luaServerDaemonize},
 		{"jail", _luaServerJail},
+		{"changeUserAndJail", _luaServerChangeUserAndJail},
+		{"daemonize", _luaServerDaemonize},
 		{NULL, NULL}
 	};
 

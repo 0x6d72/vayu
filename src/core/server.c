@@ -614,10 +614,58 @@ int serverChangeUser(const char *user)
 }
 
 /**
+ * this function is used to establish a root jail for the current process.
+ * returns 1 if the jail was successfully set up and 0 if not.
+ */
+int serverJail(const char *dir)
+{
+	/* create the root jail */
+	return chroot(dir) == 0 ? 1 : 0;
+}
+
+/**
+ * this is a combination function of serverChangeUser() and serverJail(). it is
+ * necessary because these two functions won't work together. after a chroot()
+ * the server can't read /etc/passwd to switch to the specified user. after
+ * setuid() it is not possible to call chroot(). this function returns 1 if
+ * everything was successfull and 0 if not.
+ */
+int serverChangeUserAndJail(const char *user, const char *dir)
+{
+	/* read the user data first from /etc/passwd. after chroot() this is not
+	 * possible anymore */
+	struct passwd *rec = getpwnam(user);
+
+	/* was a user found with that particular name */
+	if(rec != NULL)
+	{
+		/* now change the root of the process. this must be done before setuid()
+		 * because after that the process is not privileged anymore */
+		if(chroot(dir) == 0)
+		{
+			/* change the group id first */
+			if(setgid(rec->pw_gid) == 0)
+			{
+				/* now try to change the user id */
+				if(setuid(rec->pw_uid) == 0)
+				{
+					return 1;
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+/**
  * turns the current process into a daemon process. returns 1 if that was
  * successfull and 0 if not. if this function returns 0 the process should be
  * terminated because something might have changed e.g. stdin, stdout and stderr
  * point to /dev/null.
+ *
+ * due to the fact that /dev/null will be used for stdin, stdout and stderr,
+ * this function must be called before serverJail() or serverChangeUserAndJail()
  */
 int serverDaemonize(void)
 {
@@ -661,16 +709,6 @@ int serverDaemonize(void)
 	}
 
 	return 0;
-}
-
-/**
- * this function is used to establish a root jail for the current process.
- * returns 1 if the jail was successfully set up and 0 if not.
- */
-int serverJail(const char *dir)
-{
-	/* create the root jail */
-	return chroot(dir) == 0 ? 1 : 0;
 }
 
 /**

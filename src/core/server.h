@@ -286,18 +286,30 @@ void serverCloseSocket(int);
 int serverChangeUser(const char*);
 
 /**
- * turns the current process into a daemon process. returns 1 if that was
- * successfull and 0 if not. if this function returns 0 the process should be
- * terminated because something might have changed e.g. stdin, stdout and stderr
- * point to /dev/null.
- */
-int serverDaemonize(void);
-
-/**
  * this function is used to establish a root jail for the current process.
  * returns 1 if the jail was successfully set up and 0 if not.
  */
 int serverJail(const char*);
+
+/**
+ * this is a combination function of serverChangeUser() and serverJail(). it is
+ * necessary because these two functions won't work together. after a chroot()
+ * the server can't read /etc/passwd to switch to the specified user. after
+ * setuid() it is not possible to call chroot(). this function returns 1 if
+ * everything was successfull and 0 if not.
+ */
+int serverChangeUserAndJail(const char*, const char*);
+
+/**
+ * turns the current process into a daemon process. returns 1 if that was
+ * successfull and 0 if not. if this function returns 0 the process should be
+ * terminated because something might have changed e.g. stdin, stdout and stderr
+ * point to /dev/null.
+ *
+ * due to the fact that /dev/null will be used for stdin, stdout and stderr,
+ * this function must be called before serverJail() or serverChangeUserAndJail()
+ */
+int serverDaemonize(void);
 
 /**
  * shuts the server down. this function literally does nothing.

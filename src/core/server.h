@@ -294,6 +294,12 @@ int serverChangeUser(const char*);
 int serverDaemonize(void);
 
 /**
+ * this function is used to establish a root jail for the current process.
+ * returns 1 if the jail was successfully set up and 0 if not.
+ */
+int serverJail(const char*);
+
+/**
  * shuts the server down. this function literally does nothing.
  */
 void serverShutdown(void);

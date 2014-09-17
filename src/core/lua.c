@@ -361,7 +361,7 @@ static int _luaServerAddServerSocket(lua_State *state)
 static int _luaServerCloseSocket(lua_State *state)
 {
 	/* close the socket */
-	serverCloseSocket((int) lua_tointeger(state, 1));
+	serverCloseSocket(luaL_checkint(state, 1));
 
 	return 0;
 }
@@ -372,7 +372,7 @@ static int _luaServerCloseSocket(lua_State *state)
 static int _luaServerChangeUser(lua_State *state)
 {
 	/* try to change the user of the process */
-	lua_pushboolean(state, serverChangeUser(lua_tostring(state, 1)));
+	lua_pushboolean(state, serverChangeUser(luaL_checkstring(state, 1)));
 
 	return 1;
 }
@@ -389,6 +389,17 @@ static int _luaServerDaemonize(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverJail().
+ */
+static int _luaServerJail(lua_State *state)
+{
+	/* create the jail */
+	lua_pushboolean(state, serverJail(luaL_checkstring(state, 1)));
+
+	return 1;
+}
+
+/**
  * registers the server api with lua.
  */
 static void _registerServerApi(void)
@@ -400,6 +411,7 @@ static void _registerServerApi(void)
 		{"closeSocket", _luaServerCloseSocket},
 		{"changeUser", _luaServerChangeUser},
 		{"daemonize", _luaServerDaemonize},
+		{"jail", _luaServerJail},
 		{NULL, NULL}
 	};
 

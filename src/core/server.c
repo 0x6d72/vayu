@@ -664,6 +664,16 @@ int serverDaemonize(void)
 }
 
 /**
+ * this function is used to establish a root jail for the current process.
+ * returns 1 if the jail was successfully set up and 0 if not.
+ */
+int serverJail(const char *dir)
+{
+	/* create the root jail */
+	return chroot(dir) == 0 ? 1 : 0;
+}
+
+/**
  * shuts the server down. this function literally does nothing.
  */
 void serverShutdown(void)

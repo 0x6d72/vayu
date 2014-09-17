@@ -367,6 +367,17 @@ static int _luaServerCloseSocket(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverChangeDir().
+ */
+static int _luaServerChangeDir(lua_State *state)
+{
+	/* change the current working directory */
+	lua_pushboolean(state, serverChangeDir(luaL_checkstring(state, 1)));
+
+	return 1;
+}
+
+/**
  * lua wrapper function for serverChangeUser().
  */
 static int _luaServerChangeUser(lua_State *state)
@@ -423,6 +434,7 @@ static void _registerServerApi(void)
 		{"setCallback", _luaServerSetCallback},
 		{"openSocket", _luaServerOpenSocket},
 		{"closeSocket", _luaServerCloseSocket},
+		{"changeDir", _luaServerChangeDir},
 		{"changeUser", _luaServerChangeUser},
 		{"jail", _luaServerJail},
 		{"changeUserAndJail", _luaServerChangeUserAndJail},

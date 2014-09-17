@@ -587,6 +587,15 @@ void serverCloseSocket(int fd)
 }
 
 /**
+ * changes the current working directory of the server process. returns 1 if it
+ * was possible to change the directory and 0 if not.
+ */
+int serverChangeDir(const char *dir)
+{
+	return chdir(dir) == 0 ? 1 : 0;
+}
+
+/**
  * this function is used to change the effective and real user and group id to
  * the specified user. the user is specified by his name. returns 1 if it was
  * possible to change the user and 0 if not.

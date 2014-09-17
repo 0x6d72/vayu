@@ -279,6 +279,12 @@ int serverOpenSocket(const char*, const char*);
 void serverCloseSocket(int);
 
 /**
+ * changes the current working directory of the server process. returns 1 if it
+ * was possible to change the directory and 0 if not.
+ */
+int serverChangeDir(const char*);
+
+/**
  * this function is used to change the effective and real user and group id to
  * the specified user. the user is specified by his name. returns 1 if it was
  * possible to change the user and 0 if not.

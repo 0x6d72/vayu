@@ -299,8 +299,10 @@ static void _pushContext(eventContext_t *context)
 /**
  * used as the real socket callback function.
  */
-static void _luaCallback(eventContext_t *context)
+static int _luaCallback(eventContext_t *context)
 {
+	int result = 0;
+
 	/* get the callback function from the registry */
 	lua_pushliteral(_state, _CALLBACK_INDEX);
 	lua_rawget(_state, LUA_REGISTRYINDEX);
@@ -309,7 +311,7 @@ static void _luaCallback(eventContext_t *context)
 	_pushContext(context);
 
 	/* invoke the callback function */
-	if(lua_pcall(_state, 1, 0, 0) != LUA_OK)
+	if(lua_pcall(_state, 1, 1, 0) != LUA_OK)
 	{
 		/* the function caused an error */
 		error("lua_pcall(): %s", lua_tostring(_state, -1));
@@ -320,6 +322,16 @@ static void _luaCallback(eventContext_t *context)
 		/* in case of an error shutdown the socket */
 		serverCloseSocket(context->cFd);
 	}
+	else
+	{
+		/* get the result of the function */
+		result = lua_toboolean(_state, -1);
+
+		/* remove the result from the stack */
+		lua_pop(_state, 1);
+	}
+
+	return result;
 }
 
 /**

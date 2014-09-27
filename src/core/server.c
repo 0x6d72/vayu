@@ -73,7 +73,7 @@ static int _highestSocket;
 /**
  * invokes the callback function with the specified context data.
  */
-static void _invokeCallback(
+static int _invokeCallback(
 	event_t event, int sFd, int cFd, buf_t *iBuf, buf_t *oBuf
 )
 {
@@ -90,9 +90,12 @@ static void _invokeCallback(
 		context.iBuf = iBuf;
 		context.oBuf = oBuf;
 
-		/* invoke the callback */
-		_callback(&context);
+		/* invoke the callback and return its result */
+		return _callback(&context);
 	}
+
+	/* no callback means that this operation failed */
+	return 0;
 }
 
 /**
@@ -169,20 +172,23 @@ static int _findHighestSocket(void)
  */
 static void _removeSocket(int fd)
 {
+	int sFd = INVALID_SOCKET, cFd = INVALID_SOCKET;
+
 	/* get the socket data */
 	_socket_t *socket = _sockets + fd;
 
-	/* invoke the callback for this socket */
+	/* determine the type of the socket */
 	if(socket->isServer)
 	{
-		/* invoke the callback for server sockets */
-		_invokeCallback(EVENT_SOCKET_CLOSE, fd, INVALID_SOCKET, NULL, NULL);
+		sFd = fd;
 	}
 	else
 	{
-		/* invoke the callback for server sockets */
-		_invokeCallback(EVENT_SOCKET_CLOSE, INVALID_SOCKET, fd, NULL, NULL);
+		cFd = fd;
 	}
+
+	/* invoke the callback for the sockets */
+	(void) _invokeCallback(EVENT_SOCKET_CLOSE, sFd, cFd, NULL, NULL);
 
 	/* remove the socket data */
 	socket->keepAlive = 0;
@@ -269,7 +275,7 @@ static void _checkClientSocket(int cFd)
 /**
  * accepts a new client connection and adds it to the system, it also invokes
  * the callback of the new socket. if it was possible to accept the connection
- * but not adding it to the system, the socket be closed silently.
+ * but not adding it to the system, the client socket will be closed silently.
  */
 static void _handleServerInput(int sFd)
 {
@@ -283,21 +289,30 @@ static void _handleServerInput(int sFd)
 		if(_addSocket(cFd))
 		{
 			/* invoke the callback of the new client socket */
-			_invokeCallback(
+			if(_invokeCallback(
 				EVENT_SOCKET_ACCEPT,
 				sFd,
 				cFd,
 				&(_sockets[cFd].iBuf),
 				&(_sockets[cFd].oBuf)
-			);
+			))
+			{
+				/* check the client socket */
+				_checkClientSocket(cFd);
 
-			/* check the client socket */
-			_checkClientSocket(cFd);
+				return;
+			}
+			else
+			{
+				/* the callback returned a failure code, in this case the socket
+				 * will be removed */
+				_removeSocket(cFd);
+			}
 		}
 		else
 		{
 			/* it was not possible to the add the new client socket to the
-			 * system, close it then */
+			 * system, just close it then */
 			socketClose(cFd);
 		}
 	}
@@ -312,7 +327,7 @@ static void _handleServerInput(int sFd)
 /**
  * reads data from the specified socket and stores it in the input buffer of the
  * socket. it also invokes the callback when there was data read. the socket
- * will be closed when EOF was read.
+ * will be closed when EOF was read or the callback returned a failure code.
  */
 static void _handleClientInput(int cFd)
 {
@@ -320,18 +335,19 @@ static void _handleClientInput(int cFd)
 	if(socketRead(cFd, &(_sockets[cFd].iBuf)))
 	{
 		/* invoke the callback for this socket */
-		_invokeCallback(
+		if(_invokeCallback(
 			EVENT_SOCKET_READ,
 			INVALID_SOCKET,
 			cFd,
 			&(_sockets[cFd].iBuf),
 			&(_sockets[cFd].oBuf)
-		);
+		))
+		{
+			/* check the client socket */
+			_checkClientSocket(cFd);
 
-		/* check the client socket */
-		_checkClientSocket(cFd);
-
-		return;
+			return;
+		}
 	}
 
 	/* there was no data read, close the socket then */
@@ -429,11 +445,14 @@ void serverPrepare(void)
 
 /**
  * starts the server. this is basically the invocation of the start event.
+ * returns 1 if everything was ok and 0 if not.
  */
-void serverStart(void)
+int serverStart(void)
 {
 	/* invoke the start event */
-	_invokeCallback(EVENT_START, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL);
+	return _invokeCallback(
+		EVENT_START, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL
+	);
 }
 
 /**
@@ -502,7 +521,9 @@ int serverExec(void)
 	else
 	{
 		/* invoke the idle callback */
-		_invokeCallback(EVENT_IDLE, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL);
+		return _invokeCallback(
+			EVENT_IDLE, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL
+		);
 	}
 
 	return 1;
@@ -518,7 +539,9 @@ void serverStop(void)
 	_removeAllSockets();
 
 	/* invoke the shutdown event */
-	_invokeCallback(EVENT_STOP, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL);
+	(void) _invokeCallback(
+		EVENT_STOP, INVALID_SOCKET, INVALID_SOCKET, NULL, NULL
+	);
 }
 
 /**

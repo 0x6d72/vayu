@@ -156,7 +156,7 @@ typedef struct {
  * defines the signature of the callback. the return value depends on the
  * specific type of the callback.
  */
-typedef void (*callback_t)(eventContext_t*);
+typedef int (*callback_t)(eventContext_t*);
 
 /* --- buffer api ----------------------------------------------------------- */
 
@@ -240,8 +240,9 @@ void serverPrepare(void);
 
 /**
  * starts the server. this is basically the invocation of the start event.
+ * returns 1 if everything was ok and 0 if not.
  */
-void serverStart(void);
+int serverStart(void);
 
 /**
  * executes the server. returns 1 in case of success, 2 if there are no open

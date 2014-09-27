@@ -116,14 +116,17 @@ static void _exec(void)
 {
 	/* defines the exit codes for every return value of serverExec() */
 	static const exitCode_t resultMapping[] = {
-		EXIT_ERROR_SERVER, EXIT_OK, EXIT_ERROR_NO_CONNECTIONS
+		EXIT_ERROR_SERVER,
+		EXIT_OK,
+		EXIT_ERROR_NO_CONNECTIONS
 	};
 
 	/* start the server */
-	serverStart();
-
-	/* main loop */
-	while(_active && (_exitCode = resultMapping[serverExec()]) == EXIT_OK);
+	if(serverStart())
+	{
+		/* main loop */
+		while(_active && (_exitCode = resultMapping[serverExec()]) == EXIT_OK);
+	}
 
 	/* stop the server */
 	serverStop();

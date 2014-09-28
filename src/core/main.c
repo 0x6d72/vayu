@@ -150,29 +150,26 @@ static void _shutdown(void)
  */
 int main(int argc, char **argv)
 {
-	do
+	/* prepare everything */
+	_prepare(argc, argv);
+
+	/* was everything successfully prepared */
+	if(_exitCode == EXIT_OK)
 	{
-		/* by default the server is active and will not restart */
-		_active = 1;
-		_restart = 0;
-
-		/* prepare everything */
-		_prepare(argc, argv);
-
-		/* was everything successfully prepared */
-		if(_exitCode != EXIT_OK)
+		do
 		{
-			/* stop execution when an the server was not correctly prepared */
-			break;
+			/* by default the server is active and will not restart */
+			_active = 1;
+			_restart = 0;
+
+			/* execute the server */
+			_exec();
 		}
-
-		/* execute the server */
-		_exec();
-
-		/* shutdown the server */
-		_shutdown();
+		while(_restart);
 	}
-	while(_restart);
+
+	/* shutdown the server */
+	_shutdown();
 
 	return _exitCode;
 }

@@ -53,7 +53,7 @@ typedef struct {
 /**
  * stores the callback used by the server.
  */
-static callback_t _callback;
+static serverCallback_t _callback;
 
 /**
  * the actual array of sockets.
@@ -511,7 +511,8 @@ int serverExec(void)
 		if(errno != EINTR)
 		{
 			/* select failed, log the error */
-			error("select(): %s", strerror(errno));
+			logWrite("ERROR select()");
+			logWrite(strerror(errno));
 
 			/* a real error did occur return the appropriate error code */
 			return 0;
@@ -547,7 +548,7 @@ void serverStop(void)
 /**
  * used to set a callback for the server.
  */
-void serverSetCallback(callback_t callback)
+void serverSetCallback(serverCallback_t callback)
 {
 	/* overwrite the old callback function */
 	_callback = callback;
@@ -556,7 +557,7 @@ void serverSetCallback(callback_t callback)
 /**
  * returns the callback currently in use.
  */
-callback_t serverGetCallback(void)
+serverCallback_t serverGetCallback(void)
 {
 	return _callback;
 }

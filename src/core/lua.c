@@ -30,19 +30,29 @@
 #include <string.h>
 
 /**
- * defines the index for the callback in the lua registry.
+ * defines the prefix used for all values stored in the registry.
  */
-#define _CALLBACK_INDEX "_srv.cb"
+#define _SERVER_REGISTRY_PREFIX "_s."
+
+/**
+ * defines the index for the server callback in the lua registry.
+ */
+#define _SERVER_CALLBACK_INDEX _SERVER_REGISTRY_PREFIX "scb"
 
 /**
  * defines the index for the context table in the lua registry.
  */
-#define _CONTEXT_INDEX "_srv.ctx"
+#define _CONTEXT_INDEX _SERVER_REGISTRY_PREFIX "ctx"
+
+/**
+ * defines the index for the log callback function in the lua registry.
+ */
+#define _LOG_CALLBACK_INDEX _SERVER_REGISTRY_PREFIX "lcb"
 
 /**
  * defines the type name for all buffer objects.
  */
-#define _BUF_TYPE_NAME "_srv.buf"
+#define _BUF_TYPE_NAME _SERVER_REGISTRY_PREFIX "buf"
 
 /**
  * stores the used lua state.
@@ -299,12 +309,12 @@ static void _pushContext(eventContext_t *context)
 /**
  * used as the real socket callback function.
  */
-static int _luaCallback(eventContext_t *context)
+static int _luaServerCallback(eventContext_t *context)
 {
 	int result = 0;
 
 	/* get the callback function from the registry */
-	lua_pushliteral(_state, _CALLBACK_INDEX);
+	lua_pushliteral(_state, _SERVER_CALLBACK_INDEX);
 	lua_rawget(_state, LUA_REGISTRYINDEX);
 
 	/* push the context onto the stack */
@@ -314,7 +324,8 @@ static int _luaCallback(eventContext_t *context)
 	if(lua_pcall(_state, 1, 1, 0) != LUA_OK)
 	{
 		/* the function caused an error */
-		error("lua_pcall(): %s", lua_tostring(_state, -1));
+		logWrite("ERROR lua_pcall()");
+		logWrite(lua_tostring(_state, -1));
 
 		/* remove the error message from the stack */
 		lua_pop(_state, 1);
@@ -343,12 +354,12 @@ static int _luaServerSetCallback(lua_State *state)
 	luaL_checktype(state, 1, LUA_TFUNCTION);
 
 	/* store the function in the lua registry */
-	lua_pushliteral(state, _CALLBACK_INDEX);
+	lua_pushliteral(state, _SERVER_CALLBACK_INDEX);
 	lua_pushvalue(state, 1);
 	lua_rawset(state, LUA_REGISTRYINDEX);
 
 	/* set the accept callback */
-	serverSetCallback(_luaCallback);
+	serverSetCallback(_luaServerCallback);
 
 	return 0;
 }
@@ -472,15 +483,97 @@ static void _registerServerApi(void)
 }
 
 /**
+ * function that is used as the lua log function. calls internally the script
+ * defined log function.
+ */
+static void _luaLogCallback(const char *msg)
+{
+	/* get the callback function from the registry */
+	lua_pushliteral(_state, _LOG_CALLBACK_INDEX);
+	lua_rawget(_state, LUA_REGISTRYINDEX);
+
+	/* push the context onto the stack */
+	lua_pushstring(_state, msg);
+
+	/* invoke the callback function */
+	if(lua_pcall(_state, 1, 0, 0) != LUA_OK)
+	{
+		/* just remove the error message from the stack to prevent an endless
+		 * loop. calling logWrite() at this point would produce the same error
+		 * over and over again. */
+		lua_pop(_state, 1);
+	}
+}
+
+/**
+ * lua wrapper function for logSetCallback().
+ */
+static int _luaLogSetCallback(lua_State *state)
+{
+	/* if nothing was given, disable logging */
+	if(lua_isnoneornil(state, 1))
+	{
+		/* disable logging with NULL */
+		logSetCallback(NULL);
+	}
+	else
+	{
+		/* the first argument of this function must be a lua function */
+		luaL_checktype(state, 1, LUA_TFUNCTION);
+
+		/* store the function in the lua registry */
+		lua_pushliteral(state, _LOG_CALLBACK_INDEX);
+		lua_pushvalue(state, 1);
+		lua_rawset(state, LUA_REGISTRYINDEX);
+
+		/* set the callback */
+		logSetCallback(_luaLogCallback);
+	}
+
+	return 0;
+}
+
+/**
+ * lua wrapper function for logWrite().
+ */
+static int _luaLogWrite(lua_State *state)
+{
+	/* write the log message */
+	logWrite(luaL_checkstring(state, 1));
+
+	return 0;
+}
+
+/**
+ * registers the log api with lua.
+ */
+static void _registerLogApi(void)
+{
+	/* possible lua server functions */
+	const luaL_Reg funcs[] = {
+		{"setCallback", _luaLogSetCallback},
+		{"write", _luaLogWrite},
+		{NULL, NULL}
+	};
+
+	/* create the log api and make it accessible */
+	luaL_newlib(_state, funcs);
+	lua_setglobal(_state, "log");
+}
+
+/**
  * registers the server api with lua.
  */
 static void _registerApi(void)
 {
-	/* registers the buffer api */
+	/* register the buffer api */
 	_registerBufferApi();
 
-	/* registers the server api */
+	/* register the server api */
 	_registerServerApi();
+
+	/* register the log api */
+	_registerLogApi();
 }
 
 /**
@@ -509,7 +602,8 @@ int providerPrepare(int argc, char **argv)
 			}
 
 			/* failed to parse or execute the file, log the error */
-			error("luaL_dofile(): %s", lua_tostring(_state, -1));
+			logWrite("ERROR luaL_dofile()");
+			logWrite(lua_tostring(_state, -1));
 
 			/* remove the error message from the stack */
 			lua_pop(_state, 1);
@@ -517,13 +611,13 @@ int providerPrepare(int argc, char **argv)
 		else
 		{
 			/* cannot create a lua state */
-			error("luaL_newstate(): unable to create lua state");
+			logWrite("ERROR luaL_newstate(): unable to create lua state");
 		}
 	}
 	else
 	{
 		/* no cmd line argument */
-		error("no lua file provided");
+		logWrite("ERROR no lua file provided");
 	}
 
 	return 0;

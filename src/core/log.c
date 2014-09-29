@@ -25,19 +25,38 @@
 #include <stdio.h>
 
 /**
- * this function is used to print error messages to stderr. it is used in the
- * same way printf() is used.
+ * default log callback, which writes the message to stdout.
  */
-void error(const char *format, ...)
+static void _logStdout(const char *msg)
 {
-	va_list args;
+	/* write the message to stdout */
+	(void) puts(msg);
+}
 
-	va_start(args, format);
+/**
+ * stores the callback function.
+ */
+static logCallback_t _callback = _logStdout;
 
-	/* write the the panic message to stderr */
-	vfprintf(stderr, format, args);
+/**
+ * overwrites the current log callback function. NULL disables the log
+ * completely.
+ */
+void logSetCallback(logCallback_t callback)
+{
+	/* overwrite the callback with the new function */
+	_callback = callback;
+}
 
-	va_end(args);
-
-	fputs("\n", stderr);
+/**
+ * writes the given message to the log.
+ */
+void logWrite(const char* msg)
+{
+	/* is there a valid callback */
+	if(_callback != NULL)
+	{
+		/* log the message with the given callback function */
+		_callback(msg);
+	}
 }

@@ -69,7 +69,8 @@ int socketOpenServer(const char *host, const char *port)
 			if(fd < 0)
 			{
 				/* socket() failed, make a panic message */
-				error("socket(): %s", strerror(errno));
+				logWrite("ERROR socket()");
+				logWrite(strerror(errno));
 
 				/* not a valid socket, try the next info record */
 				continue;
@@ -82,7 +83,8 @@ int socketOpenServer(const char *host, const char *port)
 			if(bind(fd, curInfo->ai_addr, curInfo->ai_addrlen) < 0)
 			{
 				/* bind() failed, make a panic message */
-				error("bind(): %s", strerror(errno));
+				logWrite("ERROR bind()");
+				logWrite(strerror(errno));
 
 				/* bind did not work, close the socket and try the next info
 				 * record */
@@ -111,7 +113,8 @@ int socketOpenServer(const char *host, const char *port)
 			}
 
 			/* listen() failed, make a panic message */
-			error("listen(): %s", strerror(errno));
+			logWrite("ERROR listen()");
+			logWrite(strerror(errno));
 
 			/* close the socket if it was not possible to convert it */
 			close(fd);
@@ -119,13 +122,14 @@ int socketOpenServer(const char *host, const char *port)
 		else
 		{
 			/* none of the results were usable */
-			error("getaddrinfo(): returned unusable results");
+			logWrite("ERROR getaddrinfo(): returned unusable results");
 		}
 	}
 	else
 	{
 		/* getaddrinfo() failed, log the error */
-		error("getaddrinfo(): %s", gai_strerror(res));
+		logWrite("ERROR getaddrinfo()");
+		logWrite(gai_strerror(res));
 	}
 
 	return INVALID_SOCKET;
@@ -156,7 +160,8 @@ int socketAccept(int fd)
 	}
 
 	/* failed to accept a new connection, log the error */
-	error("accept(): %s", strerror(errno));
+	logWrite("ERROR accept()");
+	logWrite(strerror(errno));
 
 	/* something went wrong */
 	return INVALID_SOCKET;
@@ -191,7 +196,8 @@ int socketRead(int fd, buf_t *buf)
 	else if(bytesRead < 0)
 	{
 		/* failed to receive any data, make a panic message */
-		error("recv(): %s", strerror(errno));
+		logWrite("ERROR recv()");
+		logWrite(strerror(errno));
 	}
 
 	/* no data or an error occured */
@@ -223,7 +229,8 @@ int socketWrite(int fd, buf_t *buf)
 		if(bytesWritten < 0)
 		{
 			/* failed to send any data, make a panic message */
-			error("send(): %s", strerror(errno));
+			logWrite("ERROR send()");
+			logWrite(strerror(errno));
 
 			bytesWritten = 0;
 		}

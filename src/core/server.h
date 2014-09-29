@@ -97,6 +97,11 @@ typedef struct {
 } buf_t;
 
 /**
+ * defines the signature for the log callback function.
+ */
+typedef void (*logCallback_t)(const char*);
+
+/**
  * defines the possible callback events.
  */
 typedef enum {
@@ -156,7 +161,7 @@ typedef struct {
  * defines the signature of the callback. the return value depends on the
  * specific type of the callback.
  */
-typedef int (*callback_t)(eventContext_t*);
+typedef int (*serverCallback_t)(eventContext_t*);
 
 /* --- buffer api ----------------------------------------------------------- */
 
@@ -196,6 +201,19 @@ void bufClear(buf_t*);
  * before any buffer is filled with data.
  */
 void bufSetAlloc(bufAlloc_t);
+
+/* --- log api -------------------------------------------------------------- */
+
+/**
+ * overwrites the current log callback function. NULL disables the log
+ * completely.
+ */
+void logSetCallback(logCallback_t);
+
+/**
+ * writes the given message to the log.
+ */
+void logWrite(const char*);
 
 /* --- socket api ----------------------------------------------------------- */
 
@@ -259,12 +277,12 @@ void serverStop(void);
 /**
  * used to set a callback for the server.
  */
-void serverSetCallback(callback_t);
+void serverSetCallback(serverCallback_t);
 
 /**
  * returns the callback currently in use.
  */
-callback_t serverGetCallback(void);
+serverCallback_t serverGetCallback(void);
 
 /**
  * adds a new server socket to the system. returns the socket descriptor if
@@ -345,13 +363,5 @@ int providerPrepare(int, char**);
  * providerPrepare() did.
  */
 void providerShutdown(void);
-
-/* --- util api ------------------------------------------------------------- */
-
-/**
- * this function is used to print error messages to stderr. it is used in the
- * same way printf() is used.
- */
-void error(const char*, ...);
 
 #endif

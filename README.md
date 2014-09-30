@@ -86,6 +86,10 @@ Opens a new server socket. `host` defines the host address either in numeric rep
 
 takes a socket descriptor and closes the socket associated with that descriptor. this will create a "socket_close" event for that particular socket. if the output buffer contains data it will first written to the client.
 
+**server.getSocketAddr(socket)**
+
+returns the address and port associated with the given socket. returns two values the first one contains the host in numeric representation and the second one contains the port number.
+
 **server.changeDir(dir)**
 
 Changes the current working directory of the server process to the specified directory. Returns true if it was successfull and false if not.

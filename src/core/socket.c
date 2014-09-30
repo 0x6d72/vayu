@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 
 /**
@@ -320,7 +321,7 @@ int socketGetPeerAddr(int fd, const char **hostDst, int *portDst)
 			port = ntohs(addrV4->sin_port);
 
 			/* get the ipv4 address */
-			inet_ntop(AF_INET, addrV4->sin_addr, host, sizeof(host));
+			inet_ntop(AF_INET, &(addrV4->sin_addr), host, sizeof(host));
 		}
 		else if(addr.ss_family == AF_INET6)
 		{
@@ -331,7 +332,7 @@ int socketGetPeerAddr(int fd, const char **hostDst, int *portDst)
 			port = ntohs(addrV6->sin6_port);
 
 			/* get the ipv6 address */
-			inet_ntop(AF_INET6, addrV6->sin6_addr, host, sizeof(host));
+			inet_ntop(AF_INET6, &(addrV6->sin6_addr), host, sizeof(host));
 		}
 		else
 		{
@@ -376,7 +377,7 @@ int socketGetBoundAddr(int fd, const char **hostDst, int *portDst)
 			port = ntohs(addrV4->sin_port);
 
 			/* get the ipv4 address */
-			inet_ntop(AF_INET, addrV4->sin_addr, host, sizeof(host));
+			inet_ntop(AF_INET, &(addrV4->sin_addr), host, sizeof(host));
 		}
 		else if(addr.ss_family == AF_INET6)
 		{
@@ -387,7 +388,7 @@ int socketGetBoundAddr(int fd, const char **hostDst, int *portDst)
 			port = ntohs(addrV6->sin6_port);
 
 			/* get the ipv6 address */
-			inet_ntop(AF_INET6, addrV6->sin6_addr, host, sizeof(host));
+			inet_ntop(AF_INET6, &(addrV6->sin6_addr), host, sizeof(host));
 		}
 		else
 		{

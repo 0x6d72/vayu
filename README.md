@@ -1,6 +1,6 @@
 # Vayu
 
-Vayu is a small event based TCP server utilizing LUA as the scripting language. It complies fully to c89 except the socket stuff which is posix compliant.
+Vayu is a small event based TCP server written in c utilizing LUA as the scripting language. It complies fully to c89 except the socket stuff which is posix compliant.
 
 ## How to build?
 
@@ -20,7 +20,7 @@ $ tcc -lm $(find ../src -name "*.c")
 
 Pass the compiler any parameters you want. **-lm is mandatory (on linux at least) to compile lua**.
 
-You can even compile vayu without lua support. All you need to do is to exclude the files ./src/core/lua.c and ./src/lua/*.c and provide a file which contains the two functions providerPrepare() and providerShutdown(). See ./src/core/server.h for the declaration.
+You can even compile vayu without lua support. All you need to do is to exclude the files ./src/core/lua.c and ./src/lua/*.c and provide a file which contains the two functions `providerPrepare()` and `providerShutdown()`. See `./src/core/server.h` for the declaration.
 
 ```
 $ cd ./bin
@@ -35,7 +35,7 @@ If you have successfully build vayu call it like this:
 $ ./vayu LUA_SCRIPT
 ```
 
-where LUA_SCRIPT is the lua containing all the server logic.
+where LUA_SCRIPT is the lua script file containing the entire server logic.
 
 ## C Interface
 
@@ -71,7 +71,7 @@ Used to set the event callback to the given function. The callback function has 
 
     -- the next two fields contain the data buffer for the client socket.
     -- they only contain a buffer object when the client socket descriptor
-    -- is set otherwise they contain nil. see the buffer api section for more details.
+    -- is set otherwise they contain nil. see the buffer section for more details.
     ["iBuf"] = buffer,
     ["oBuf"] = buffer
 }

@@ -66,7 +66,8 @@ Used to set the event callback to the given function. The callback function has 
     ["sFd"] = number,
 
     -- the client socket descriptor (the socket connected to the client)
-    -- only set on "socket_accept", "socket_read", "socket_write" or "socket_close" otherwise nil
+    -- only set on "socket_accept", "socket_read", "socket_write" or "socket_close"
+    -- otherwise nil
     ["cFd"] = number,
 
     -- the next two fields contain the data buffer for the client socket.

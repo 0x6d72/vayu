@@ -392,6 +392,27 @@ static int _luaServerCloseSocket(lua_State *state)
 }
 
 /**
+ * lua wrapper function for serverGetSocketAddr().
+ */
+static int _luaServerGetSocketAddr(lua_State *state)
+{
+	int port;
+	const char *host;
+
+	/* get the address */
+	if(serverGetSocketAddr(luaL_checkint(state, 1), &host, &port))
+	{
+		/* push the address and port onto the stack */
+		lua_pushstring(state, host);
+		lua_pushinteger(state, (lua_Integer) port);
+
+		return 2;
+	}
+
+	return 0;
+}
+
+/**
  * lua wrapper function for serverChangeDir().
  */
 static int _luaServerChangeDir(lua_State *state)
@@ -470,6 +491,7 @@ static void _registerServerApi(void)
 		{"setCallback", _luaServerSetCallback},
 		{"openSocket", _luaServerOpenSocket},
 		{"closeSocket", _luaServerCloseSocket},
+		{"getSocketAddr", _luaServerGetSocketAddr},
 		{"changeDir", _luaServerChangeDir},
 		{"isPrivileged", _luaServerIsPrivileged},
 		{"changeUser", _luaServerChangeUser},

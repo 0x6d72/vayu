@@ -287,3 +287,119 @@ void socketClose(int fd)
 	/* close the socket */
 	close(fd);
 }
+
+/**
+ * returns the address and the port of the connected peer. fills the second and
+ * third parameter with data. the pointer stored in the second parameter points
+ * to a static address and must not be free()ed. returns 1 if everything is ok
+ * and 0 if not.
+ *
+ * works only for client sockets!
+ */
+int socketGetPeerAddr(int fd, const char **hostDst, int *portDst)
+{
+	static char host[INET6_ADDRSTRLEN];
+	static int port;
+
+	struct sockaddr_in* addrV4;
+	struct sockaddr_in6* addrV6;
+
+	struct sockaddr_storage addr;
+	socklen_t addrLen = sizeof(addr);
+
+	/* get the peer address information */
+	if(getpeername(fd, (struct sockaddr*) &addr, &addrLen) == 0)
+	{
+		/* getpeername() can return either ipv4 or ipv6 data */
+		if(addr.ss_family == AF_INET)
+		{
+			/* ipv4 */
+			addrV4 = (struct sockaddr_in*) &addr;
+
+			/* get the port number from the ipv4 structure */
+			port = ntohs(addrV4->sin_port);
+
+			/* get the ipv4 address */
+			inet_ntop(AF_INET, addrV4->sin_addr, host, sizeof(host));
+		}
+		else if(addr.ss_family == AF_INET6)
+		{
+			/* ipv6 */
+			addrV6 = (struct sockaddr_in6*) &addr;
+
+			/* get the port from the ipv6 structure */
+			port = ntohs(addrV6->sin6_port);
+
+			/* get the ipv6 address */
+			inet_ntop(AF_INET6, addrV6->sin6_addr, host, sizeof(host));
+		}
+		else
+		{
+			return 0;
+		}
+
+		/* copy the information into the destinations */
+		*hostDst = host;
+		*portDst = port;
+
+		return 1;
+	}
+
+	return 0;
+}
+
+/**
+ * does the same as socketGetPeerAddr() but for server sockets. returns the
+ * address bound to the socket.
+ */
+int socketGetBoundAddr(int fd, const char **hostDst, int *portDst)
+{
+	static char host[INET6_ADDRSTRLEN];
+	static int port;
+
+	struct sockaddr_in* addrV4;
+	struct sockaddr_in6* addrV6;
+
+	struct sockaddr_storage addr;
+	socklen_t addrLen = sizeof(addr);
+
+	/* get the address information of the socket */
+	if(getsockname(fd, (struct sockaddr*) &addr, &addrLen) == 0)
+	{
+		/* getsockname() can return either ipv4 or ipv6 data */
+		if(addr.ss_family == AF_INET)
+		{
+			/* ipv4 */
+			addrV4 = (struct sockaddr_in*) &addr;
+
+			/* get the port number from the ipv4 structure */
+			port = ntohs(addrV4->sin_port);
+
+			/* get the ipv4 address */
+			inet_ntop(AF_INET, addrV4->sin_addr, host, sizeof(host));
+		}
+		else if(addr.ss_family == AF_INET6)
+		{
+			/* ipv6 */
+			addrV6 = (struct sockaddr_in6*) &addr;
+
+			/* get the port from the ipv6 structure */
+			port = ntohs(addrV6->sin6_port);
+
+			/* get the ipv6 address */
+			inet_ntop(AF_INET6, addrV6->sin6_addr, host, sizeof(host));
+		}
+		else
+		{
+			return 0;
+		}
+
+		/* copy the information into the destinations */
+		*hostDst = host;
+		*portDst = port;
+
+		return 1;
+	}
+
+	return 0;
+}

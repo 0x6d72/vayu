@@ -251,6 +251,22 @@ int socketWrite(int, buf_t*);
  */
 void socketClose(int);
 
+/**
+ * returns the address and the port of the connected peer. fills the second and
+ * third parameter with data. the pointer stored in the second parameter points
+ * to a static address and must not be free()ed. returns 1 if everything is ok
+ * and 0 if not.
+ *
+ * works only for client sockets!
+ */
+int socketGetPeerAddr(int, const char**, int*);
+
+/**
+ * does the same as socketGetPeerAddr() but for server sockets. returns the
+ * address bound to the socket.
+ */
+int socketGetBoundAddr(int, const char**, int*);
+
 /* --- server api ----------------------------------------------------------- */
 
 /**
@@ -299,6 +315,14 @@ int serverOpenSocket(const char*, const char*);
  * sockets is only possible with client connections.
  */
 void serverCloseSocket(int);
+
+/**
+ * returns the address and port of the given socket. for server sockets this is
+ * the address the socket is bound to and for client sockets this is the peer
+ * address. the address and port are stored in the second and third parameter.
+ * returns 1 if everything is ok and 0 if not.
+ */
+int serverGetSocketAddr(int, const char**, int*);
 
 /**
  * changes the current working directory of the server process. returns 1 if it

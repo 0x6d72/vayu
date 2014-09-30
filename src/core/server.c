@@ -614,6 +614,26 @@ void serverCloseSocket(int fd)
 }
 
 /**
+ * returns the address and port of the given socket. for server sockets this is
+ * the address the socket is bound to and for client sockets this is the peer
+ * address. the address and port are stored in the second and third parameter.
+ * returns 1 if everything is ok and 0 if not.
+ */
+int serverGetSocketAddr(int fd, const char **hostDst, int *portDst)
+{
+	/* is there a socket for the given descriptor */
+	if(_isValidSocket(fd))
+	{
+		/* get the address information for the socket */
+		return _sockets[fd].isServer
+			? socketGetBoundAddr(fd, hostDst, portDst)
+			: socketGetPeerAddr(fd, hostDst, portDst);
+	}
+
+	return 0;
+}
+
+/**
  * changes the current working directory of the server process. returns 1 if it
  * was possible to change the directory and 0 if not.
  */

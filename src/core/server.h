@@ -227,7 +227,8 @@ int socketOpenServer(const char*, const char*);
 
 /**
  * accepts a new client connection on the given server socket. returns either
- * the new socket descriptor (value >= 0) or -1 in case of error.
+ * the new socket descriptor (value >= 0) or -1 (INVALID_SOCKET) in case of
+ * error.
  */
 int socketAccept(int);
 

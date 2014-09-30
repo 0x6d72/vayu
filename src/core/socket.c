@@ -42,12 +42,25 @@ static void _makeNonBlocking(int fd)
 }
 
 /**
+ * tells the given socket to reuse the address it will be bound to later.
+ */
+static void _reuseAddr(int fd)
+{
+	int yes = 1;
+
+	/* let the socket reuse the address it is about to bind to */
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*) &yes, sizeof(yes));
+}
+
+/**
  * creates a new server socket descriptor and returns it. returns the new socket
  * descriptor (value >= 0) or -1 in case of an error.
  */
 int socketOpenServer(const char *host, const char *port)
 {
-	int fd = -1, yes = 1, res;
+	/* todo: function to big, should not be more than 50 lines */
+
+	int fd = -1, res;
 	struct addrinfo addrInfoHints = {0}, *addrInfo, *curInfo;
 
 	/* set the necessary hints for address resolution */
@@ -79,7 +92,7 @@ int socketOpenServer(const char *host, const char *port)
 			}
 
 			/* let the socket reuse the address it is about to bind to */
-			setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*) &yes, sizeof(yes));
+			_reuseAddr(fd);
 
 			/* bind to the address */
 			if(bind(fd, curInfo->ai_addr, curInfo->ai_addrlen) < 0)
@@ -118,7 +131,8 @@ int socketOpenServer(const char *host, const char *port)
 			logWrite("ERROR listen()");
 			logWrite(strerror(errno));
 
-			/* close the socket if it was not possible to convert it */
+			/* close the socket if it was not possible to convert it to
+			 * listening socket */
 			close(fd);
 		}
 		else
@@ -139,7 +153,8 @@ int socketOpenServer(const char *host, const char *port)
 
 /**
  * accepts a new client connection on the given server socket. returns either
- * the new socket descriptor (value >= 0) or -1 in case of error.
+ * the new socket descriptor (value >= 0) or -1 (INVALID_SOCKET) in case of
+ * error.
  */
 int socketAccept(int fd)
 {
@@ -155,7 +170,9 @@ int socketAccept(int fd)
 		return newFd;
 	}
 	/* EAGAIN indicates that another process accepted the client connection
-	 * first. return a socket value so high that it would never be used. */
+	 * first. return a socket value so high that it would never be used.
+	 * this was a possible case when it was possible to create multiple
+	 * processes. */
 	else if(errno == EAGAIN)
 	{
 		return SOCKET_MAX;
@@ -245,7 +262,7 @@ int socketWrite(int fd, buf_t *buf)
 			bufAppend(
 				buf,
 				(void*) (((char*) data) + bytesWritten),
-				len - (size_t) bytesWritten
+				len - ((size_t) bytesWritten)
 			);
 		}
 
